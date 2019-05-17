@@ -1,0 +1,2 @@
+key_name = "<NAME OF YOUR KEY PAIR FOR EC2>"
+bucket_name = "<GLOBALLY UNIQUE S3 BUCKET NAME>"

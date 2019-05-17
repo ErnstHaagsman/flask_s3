@@ -1,0 +1,6 @@
+.idea/
+*.pyc
+terraform.tfstate*
+terraform.tfvars
+.terraform/
+venv/
