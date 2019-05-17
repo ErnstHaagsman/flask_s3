@@ -18,3 +18,7 @@ To run the application, create a Flask run configuration, and specify:
 - Environment variables `BUCKET_NAME` and `BUCKET_REGION` should be set
   to the name of the S3 bucket you specified in your `terraform.tfvars`
   file, and the default region you have configured for AWS on the CLI.
+
+After you're done with this env, you can destroy everything with:
+
+    terraform destroy

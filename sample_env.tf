@@ -48,6 +48,8 @@ resource "aws_s3_bucket" "bucket" {
   acl = "public-read"
   policy = "${data.aws_iam_policy_document.s3-public-read.json}"
 
+  force_destroy = true
+
   tags = {
     Name = "S3-Flask-Example"
   }
