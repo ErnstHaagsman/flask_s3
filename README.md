@@ -10,7 +10,8 @@ Run
     terraform apply
     
 The last command will output the DNS name of the box you can now configure
-as an SSH remote interpreter to run the code.
+as an SSH remote interpreter to run the code. Keep in mind that the default
+username for a Ubuntu AMI is 'ubuntu'.
 
 To run the application, create a Flask run configuration, and specify:
 
