@@ -1,10 +1,14 @@
+import os
+from uuid import uuid4
+
 from flask import Flask, render_template, request
 import boto3
 
 app = Flask(__name__)
 s3 = boto3.client('s3')
-BUCKET_NAME = ''
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+BUCKET_NAME = os.environ['BUCKET_NAME']
+BUCKET_REGION = os.environ['BUCKET_REGION']
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 
 @app.route('/', methods=['GET'])
@@ -27,4 +31,9 @@ def upload_file():
 
     new_name = '{}.{}'.format(uuid4(), ext)
     s3.upload_fileobj(picture, BUCKET_NAME, new_name)
-    return '<a href="' + new_name +'">Your pic</a>'
+    url = 'https://s3.{}.amazonaws.com/{}/{}'.format(
+        BUCKET_REGION,
+        BUCKET_NAME,
+        new_name
+    )
+    return '<a href="' + url +'">Your pic</a>'

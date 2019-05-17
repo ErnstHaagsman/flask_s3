@@ -46,6 +46,7 @@ output "instance_dns_name" {
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.bucket_name}"
   acl = "public-read"
+  policy = "${data.aws_iam_policy_document.s3-public-read.json}"
 
   tags = {
     Name = "S3-Flask-Example"
@@ -94,6 +95,20 @@ data "aws_iam_policy_document" "instance-assume-role-policy" {
   }
 }
 
+data "aws_iam_policy_document" "s3-public-read" {
+  statement {
+    actions = ["s3:GetObject"]
+
+    principals {
+      identifiers = ["*"]
+      type = "*"
+    }
+
+    resources = [
+      "arn:aws:s3:::${var.bucket_name}/*"
+    ]
+  }
+}
 
 data "aws_iam_policy_document" "instance-s3-access-policy" {
   statement {
@@ -113,7 +128,7 @@ data "aws_iam_policy_document" "instance-s3-access-policy" {
     ]
 
     resources = [
-      "arn:aws:s3:::${aws_s3_bucket.bucket.bucket}"
+      "arn:aws:s3:::${aws_s3_bucket.bucket.bucket}/*"
     ]
   }
 }
