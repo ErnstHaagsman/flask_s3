@@ -1,6 +1,15 @@
 To set up
 ---------
 
+First, make sure you have 
+[CLI access to an AWS account](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html). 
+After the CLI is configured, make sure you have 
+[the Terraform binary](https://www.terraform.io/downloads.html)
+on your PATH. 
+
+You don't need anything else, the Terraform script will create
+the EC2 box, the S3 bucket, and all necessary configuration.
+
 Copy `terraform.tfvars.example` to `terraform.tfvars` and fill out the 
 fields with the appropriate variables. 
 
