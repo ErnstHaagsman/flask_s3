@@ -38,8 +38,15 @@ resource "aws_instance" "sample" {
     Name = "S3-Flask-Example"
   }
 
-  provisioner "local-exec" {
-    command = "sudo apt-get update && sudo apt-get install -y python3-distutils"
+  provisioner "remote-exec" {
+    inline = [
+     "sudo apt-get update && sudo apt-get install -y python3-distutils"
+    ]
+
+    connection {
+      type = "ssh"
+      user = "ubuntu"
+    }
   }
 }
 
