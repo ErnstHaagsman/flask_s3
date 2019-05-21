@@ -37,6 +37,10 @@ resource "aws_instance" "sample" {
   tags = {
     Name = "S3-Flask-Example"
   }
+
+  provisioner "local-exec" {
+    command = "sudo apt-get update && sudo apt-get install -y python3-distutils"
+  }
 }
 
 output "instance_dns_name" {
