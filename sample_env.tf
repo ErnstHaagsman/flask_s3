@@ -1,4 +1,3 @@
-variable "bucket_name" {}
 variable "key_name" {}
 
 provider "aws" {
@@ -26,21 +25,25 @@ resource "aws_instance" "sample" {
 
   ami = "${data.aws_ami.ubuntu.id}"
 
-  # t2 is free tier, t3 isn't.
-  instance_type = "t2.micro"
+  # for performance considerations, something bigger than micro is required
+  instance_type = "t3.medium"
 
   key_name = "${var.key_name}"
   vpc_security_group_ids = ["${aws_security_group.flask-sg.id}"]
 
-  iam_instance_profile = "${aws_iam_instance_profile.flask-s3-profile.name}"
-
   tags = {
-    Name = "S3-Flask-Example"
+    Name = "Guestbook-EC2-Example"
   }
 
   provisioner "remote-exec" {
     inline = [
-     "sudo apt-get update && sudo apt-get install -y python3-distutils"
+      "sudo apt-get update",
+      "sudo apt-get install -y openjdk-8-jdk-headless git",
+      "git clone https://github.com/ernsthaagsman/guestbook ~/guestbook",
+      "cd ~/guestbook/backend",
+      "chmod +x ./gradlew",
+      "./gradlew bootJar",
+      "sudo sed -i -e '/^assistive_technologies=/s/^/#/' /etc/java-*-openjdk/accessibility.properties"
     ]
 
     connection {
@@ -54,25 +57,21 @@ output "instance_dns_name" {
   value = "${aws_instance.sample.public_dns}"
 }
 
-resource "aws_s3_bucket" "bucket" {
-  bucket = "${var.bucket_name}"
-  acl = "public-read"
-  policy = "${data.aws_iam_policy_document.s3-public-read.json}"
-
-  force_destroy = true
-
-  tags = {
-    Name = "S3-Flask-Example"
-  }
-}
-
 resource "aws_security_group" "flask-sg" {
-  name = "S3-Flask-Example"
+  name = "Guestbook-EC2-Example"
 
   ingress {
-    # The port the Flask app runs on
-    from_port = "5000"
-    to_port = "5000"
+    # The port the Guestbook app runs on
+    from_port = "8080"
+    to_port = "8080"
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    # JDWP
+    from_port = "5005"
+    to_port = "5005"
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -93,75 +92,6 @@ resource "aws_security_group" "flask-sg" {
   }
 
   tags = {
-    Name = "S3-Flask-Example"
+    Name = "Guestbook-EC2-Example"
   }
 }
-
-data "aws_iam_policy_document" "instance-assume-role-policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
-}
-
-data "aws_iam_policy_document" "s3-public-read" {
-  statement {
-    actions = ["s3:GetObject"]
-
-    principals {
-      identifiers = ["*"]
-      type = "*"
-    }
-
-    resources = [
-      "arn:aws:s3:::${var.bucket_name}/*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "instance-s3-access-policy" {
-  statement {
-    actions = [
-      "s3:ListAllMyBuckets",
-      "s3:GetBucketLocation",
-    ]
-
-    resources = [
-      "arn:aws:s3:::*",
-    ]
-  }
-
-  statement {
-    actions = [
-      "s3:*",
-    ]
-
-    resources = [
-      "arn:aws:s3:::${aws_s3_bucket.bucket.bucket}/*"
-    ]
-  }
-}
-
-resource "aws_iam_role" "role" {
-  name = "flask-s3-role"
-
-  assume_role_policy = "${data.aws_iam_policy_document.instance-assume-role-policy.json}"
-}
-
-resource "aws_iam_policy" "flask-s3-policy" {
-  policy = "${data.aws_iam_policy_document.instance-s3-access-policy.json}"
-}
-
-resource "aws_iam_role_policy_attachment" "flask-s3-attach" {
-  policy_arn = "${aws_iam_policy.flask-s3-policy.arn}"
-  role = "${aws_iam_role.role.name}"
-}
-
-resource "aws_iam_instance_profile" "flask-s3-profile" {
-  role = "${aws_iam_role.role.name}"
-}
-
